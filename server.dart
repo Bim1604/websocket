@@ -1,8 +1,8 @@
 import 'dart:io';
 
 void main() async {
-  // Lấy PORT từ biến môi trường (hoặc mặc định 8080)
-  final port = int.tryParse(Platform.environment['PORT'] ?? '8080') ?? 8080;
+  
+  final port = 80;
   final server = await HttpServer.bind(InternetAddress.anyIPv4, port);
 
   print("WebSocket Server running at ws://${server.address.address}:$port");
