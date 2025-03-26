@@ -1,7 +1,7 @@
 import 'dart:io';
 
 void main() async {
-  
+
   final port = 80;
   final server = await HttpServer.bind(InternetAddress.anyIPv4, port);
 
@@ -13,6 +13,8 @@ void main() async {
     if (WebSocketTransformer.isUpgradeRequest(request)) {
       WebSocket socket = await WebSocketTransformer.upgrade(request);
       print("Client connected!");
+      clients.add(socket);
+      print('A new player connected. Total players: ${clients.length}');
 
       socket.listen((data) {
         print("Received: $data");
