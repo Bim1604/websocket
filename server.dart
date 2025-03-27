@@ -11,15 +11,12 @@ void main() async {
 
   print("WebSocket Server running at ws://${server.address.address}:$port");
 
-  final List<WebSocket> clients = [];
   final Map<String, RoomModel> rooms = {};
 
   await for (HttpRequest request in server) {
     if (WebSocketTransformer.isUpgradeRequest(request)) {
       WebSocket socket = await WebSocketTransformer.upgrade(request);
       print("Client connected!");
-      clients.add(socket);
-      print('A new player connected. Total players: ${clients.length}');
 
       socket.listen((message) {
         socket.add("Server received: $message");
@@ -28,20 +25,27 @@ void main() async {
         final roomID = data[1];
         if (action == "join") {
           rooms.putIfAbsent(roomID, () => RoomModel(id: roomID));
+          if (rooms[roomID]!.players.length == 2) {
+            socket.add("Room is full"); /// send mes to client
+            print("Room ${roomID} is full");
+            return;
+          }
           rooms[roomID]!.players.add(socket);
 
           if (rooms[roomID]!.players.length == 2) {
               rooms[roomID]!.players.forEach((player) {
               player.add('start:$roomID');
+              print("Start room ${roomID}");
             });
           }
-          print("Room count: ${rooms[roomID]?.players.length}");
+          print("Room ${roomID} player: ${rooms[roomID]?.players.length}");
         } else if (action == "move") {
           rooms[roomID]!.players.forEach((player) {
             if (player != socket) {
               player.add(message);
             }
           });
+          
         }
       }, onDone: () {
           rooms.forEach((key, room) {
@@ -50,13 +54,11 @@ void main() async {
               rooms.remove(key);
             }
           });
+          print("Client disconnected");
           print("Room count: ${rooms.length}");
-          clients.remove(socket);
-          print('A player disconnected. Total players: ${clients.length}');
         },
         onError: (error) {
           print('Error: $error');
-          clients.remove(socket);
         },);
 
     } else {
