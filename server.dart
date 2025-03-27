@@ -22,7 +22,6 @@ void main() async {
       print('A new player connected. Total players: ${clients.length}');
 
       socket.listen((message) {
-        print("Received: $message");
         socket.add("Server received: $message");
         final data = message.split(':'); 
         final action = data[0];
@@ -36,6 +35,7 @@ void main() async {
               player.add('start:$roomID');
             });
           }
+          print("Room count: ${rooms[roomID]?.players.length}");
         } else if (action == "move") {
           rooms[roomID]!.players.forEach((player) {
             if (player != socket) {
