@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'data_action.dart';
+import 'join_room.dart';
+import 'leave_room_controller.dart';
 import 'room_model.dart';
 
 
@@ -22,30 +25,26 @@ void main() async {
         socket.add("Server received: $message");
         final data = message.split(':'); 
         final action = data[0];
-        final roomID = data[1];
-        if (action == "join") {
-          rooms.putIfAbsent(roomID, () => RoomModel(id: roomID));
-          if (rooms[roomID]!.players.length == 2) {
-            socket.add("Room is full"); /// send mes to client
-            print("Room ${roomID} is full");
-            return;
-          }
-          rooms[roomID]!.players.add(socket);
-
-          if (rooms[roomID]!.players.length == 2) {
-              rooms[roomID]!.players.forEach((player) {
-              player.add('start:$roomID');
-              print("Start room ${roomID}");
-            });
-          }
-          print("Room ${roomID} player: ${rooms[roomID]?.players.length}");
-        } else if (action == "move") {
-          rooms[roomID]!.players.forEach((player) {
+        final String roomID = "123";
+        switch (action) {
+          case DataAction.join:
+          final username = data[1];
+            JoinRoomController.joinRoom(username, rooms, socket, roomID);
+            print("length: ${rooms[roomID]?.players.length}");
+            break;
+          case DataAction.move:
+            rooms[roomID]!.players.forEach((username,player) {
             if (player != socket) {
-              player.add(message);
-            }
-          });
-          
+                player.add(message);
+              }
+            });
+            break;
+          case DataAction.leave:
+            final username = data[1];
+            LeaveRoomController.leaveRoom(username, rooms, socket, roomID);
+            print("length: ${rooms[roomID]?.players.length}");
+            break;
+          default:
         }
       }, onDone: () {
           rooms.forEach((key, room) {
